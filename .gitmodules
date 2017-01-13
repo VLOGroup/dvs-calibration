@@ -1,0 +1,3 @@
+[submodule "camera_calibration"]
+	path = camera_calibration
+	url = https://github.com/RobVisLab/camera_calibration.git
