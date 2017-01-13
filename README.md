@@ -1,15 +1,9 @@
-# DVS Panoramic Tracking
-This repository provides software for our publication "Real-Time Panoramic Tracking for Event Cameras", ICCP 2017.
+# DVS Camera Calibration
+This repository provides software for an automatic camera calibration of a DVS128. It uses the calibration framework of Jean-Yves Bouguet (http://www.vision.caltech.edu/bouguetj/calib_doc/index.html) together with a recently proposed feature detections method for low-resolution cameras (https://github.com/RobVisLab/camera_calibration). For showing a fullscreen picture in MATLAB, the repository contains the code from https://de.mathworks.com/matlabcentral/fileexchange/11112-fullscreen .
 
-If you use this code please cite the following publication:
-~~~
-@inproceedings{reinbacher_iccp2017,
-  author = {Christian Reinbacher and Gottfried Munda and Thomas Pock},
-  title = {{Real-Time Panoramic Tracking for Event Cameras}},
-  booktitle = {2017 International Conference on Computational Photography (ICCP)},
-  year = {2017},
-}
-~~~
+The main idea of this framework is to use a LCD monitor as calibration target. By recording a flickering target, it is easy to reconstruct images by simple addition of all observed events.
+
+The software consists of two parts, a camera grabber written in C++ and the main calibration routine in MATLAB.
 
 ## Compiling
 For your convenience, the required libraries that are on Github are added as
@@ -20,48 +14,39 @@ git submodule update --init --recursive
 after cloning.
 
 This software requires:
- - GCC >= 4.9
- - CMake >= 3.2
- - Qt >= 5.6
- - ImageUtilities (https://github.com/VLOGroup/imageutilities) with the `iugui`, `iuio` and `iumath` modules
  - libcaer >=2.0 (https://github.com/inilabs/libcaer)
- - cnpy (https://github.com/rogersce/cnpy)
- - DVS128 camera (can also load events from files)
+ - camera_calibration (https://github.com/RobVisLab/camera_calibration)
+ - DVS128 camera
 
-To compile, first build and install ImageUtilities, then:
+To compile, first build and install `libcaer`, then the grabber:
  ~~~
-cd cnpy
+cd libcaer
 cmake .
 make
 (sudo) make install
-cd ../libcaer
-cmake .
-make
-(sudo) make install
-cd ..
+cd ../grabber
 mkdir build
 cd build
-cmake ../src
-make -j6
+cmake ..
+make
  ~~~
 
- Per default, the application will compile to support the iniLabs DVS128.
+Per default, the application will compile to support the iniLabs DVS128.
 
 ## Usage
-Launch `live_tracking_gui <camera_calibration_file.txt>` to get to the main application which should look like this:
-<img src="https://github.com/VLOGroup/dvs-panotracking/raw/master/images/screenshot.png"></img>
+Run the `do_calibration.m` file in MATLAB. It will capture 20 images using a flickering target and then start the calibration routine. Adapt `resolution=[1920,1080];` to the resolution of your second screen (`fullscreen.m` only works reliably on the non-primary monitor).
 
-Camera calibration files are included in the `data/` folder, the format is as follows:
-~~~
-<3x3 camera intrinsics matrix>
-<width of panorama>
-<height of panorama>
-<radial distortion coefficient>
-~~~
+During the calibration, the target will flicker for approximately 2 seconds, after that you have 3 seconds to reposition the camera before the next picture is taken. Make sure to take pictures from different angles and distances to the target. Use a tripod in order to minimize camera movement!
 
-Clicking on the play button with an attached camera will start the live reconstruction method. Alternatively, events can be loaded from text files with one event per line:
+A few images are already included in the `data/` folder to test the method without a camera.
+
+The result of the calibration is stored in the following variables:
 ~~~
-<timestamp in seconds> <x> <y> <polarity (-1/1)>
-...
-...
+Calibration results after optimization (with uncertainties):
+
+Focal Length:          fc = [ 158.85961   158.52668 ] +/- [ 2.81702   2.86259 ]
+Principal point:       cc = [ 63.50000   63.50000 ] +/- [ 0.00000   0.00000 ]
+Skew:             alpha_c = [ 0.00000 ] +/- [ 0.00000  ]   => angle of pixel axes = 90.00000 +/- 0.00000 degrees
+Distortion:            kc = [ -0.19702   0.00000   0.00000   0.00000  0.00000 ] +/- [ 0.01750   0.00000   0.00000   0.00000  0.00000 ]
+Pixel error:          err = [ 0.05699   0.05704 ]
 ~~~
