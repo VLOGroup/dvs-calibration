@@ -36,6 +36,8 @@ Per default, the application will compile to support the iniLabs DVS128.
 ## Usage
 Run the `do_calibration.m` file in MATLAB. It will capture 20 images using a flickering target and then start the calibration routine. Adapt `resolution=[1920,1080];` to the resolution of your second screen (`fullscreen.m` only works reliably on the non-primary monitor).
 
+In case you get an error about a broken .mexa64 file on Linux systems, you will have to override the `libstdc++.so.6` that comes with MATLAB by executing `export LD_PRELOAD=$LD_PRELOAD:/usr/lib/x86_64-linux-gnu/libstdc++.so.6:/usr/lib/x86_64-linux-gnu/libprotobuf.so.9` before starting MATLAB.
+
 During the calibration, the target will flicker for approximately 2 seconds, after that you have 3 seconds to reposition the camera before the next picture is taken. Make sure to take pictures from different angles and distances to the target. Use a tripod in order to minimize camera movement!
 
 A few images are already included in the `data/` folder to test the method without a camera.
